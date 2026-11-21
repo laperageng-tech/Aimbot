@@ -1,0 +1,42 @@
+name: Build AutoCombat
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cari project AutoCombat
+        id: find
+        run: |
+          # Kalau yang di-upload berupa AutoCombat.zip, ekstrak dulu
+          if [ -f AutoCombat.zip ]; then unzip -o AutoCombat.zip; fi
+          POM=$(find . -path "*AutoCombat*" -name pom.xml | head -n 1)
+          if [ -z "$POM" ]; then POM=$(find . -name pom.xml | head -n 1); fi
+          if [ -z "$POM" ]; then
+            echo "pom.xml tidak ditemukan di repository. Isi repo:"
+            ls -R | head -n 50
+            exit 1
+          fi
+          echo "Project ditemukan: $POM"
+          echo "dir=$(dirname "$POM")" >> "$GITHUB_OUTPUT"
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Build dengan Maven
+        run: mvn -B -f "${{ steps.find.outputs.dir }}/pom.xml" package
+
+      - name: Upload jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: AutoCombat
+          path: ${{ steps.find.outputs.dir }}/target/AutoCombat.jar
