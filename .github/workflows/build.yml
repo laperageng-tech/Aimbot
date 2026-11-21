@@ -14,8 +14,10 @@ jobs:
       - name: Cari project AutoCombat
         id: find
         run: |
-          # Kalau yang di-upload berupa AutoCombat.zip, ekstrak dulu
-          if [ -f AutoCombat.zip ]; then unzip -o AutoCombat.zip; fi
+          # Kalau yang di-upload berupa file zip (nama apa pun), ekstrak dulu
+          for z in *.zip; do
+            if [ -f "$z" ]; then unzip -o "$z"; fi
+          done
           POM=$(find . -path "*AutoCombat*" -name pom.xml | head -n 1)
           if [ -z "$POM" ]; then POM=$(find . -name pom.xml | head -n 1); fi
           if [ -z "$POM" ]; then
